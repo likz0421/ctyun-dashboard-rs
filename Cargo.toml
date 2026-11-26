@@ -1,0 +1,42 @@
+[package]
+name = "ctyun-dashboard-rs"
+version = "1.0.0"
+edition = "2021"
+description = "天翼云电脑可视化控制台 - Rust 重写版（仅天翼云，毛玻璃前端）"
+
+[dependencies]
+axum = { version = "0.8", features = ["ws", "macros"] }
+tokio = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls-native-roots", "stream"] }
+# 只用 ring，避免 aws-lc-sys 的 C 汇编依赖（便于 musl 交叉编译到 OpenWrt）。
+# keeper.rs 自己构造 rustls ClientConfig + Connector::Rustls，无需 tungstenite 的 tls feature。
+tokio-tungstenite = { version = "0.26", features = ["connect", "__rustls-tls"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+futures-util = "0.3"
+num-bigint = "0.4"
+num-traits = "0.2"
+rsa = { version = "0.9", features = ["sha1"] }
+sha1 = "0.10"
+sha2 = "0.10"
+md-5 = "0.10"
+aes-gcm = "0.10"
+aes = "0.8"
+base64 = "0.22"
+hex = "0.4"
+rand = "0.8"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tower-http = { version = "0.6", features = ["fs", "cors"] }
+url = "2"
+urlencoding = "2"
+qrcode = "0.14"
+
+[profile.release]
+opt-level = 2
+strip = true
+lto = "thin"

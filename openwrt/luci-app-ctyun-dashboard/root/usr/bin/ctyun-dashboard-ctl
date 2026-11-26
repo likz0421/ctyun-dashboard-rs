@@ -1,0 +1,47 @@
+#!/bin/sh
+# 天翼云电脑控制中心 · 命令行管理工具
+INIT="/etc/init.d/ctyun-dashboard"
+PORT=$(uci get ctyun_dashboard.main.port 2>/dev/null || echo 8571)
+
+usage() {
+  cat <<EOF
+用法: ctyun-dashboard-ctl <命令>
+  start       启动服务
+  stop        停止服务
+  restart     重启服务
+  status      查看运行状态
+  port [端口] 查看/修改监听端口
+  open        打印控制面板访问地址
+  logs        查看最近日志
+EOF
+}
+
+case "$1" in
+  start|stop|restart) "$INIT" "$1" ;;
+  status)
+    if pgrep -f '/usr/bin/ctyun-dashboard' >/dev/null 2>&1; then
+      echo "运行中 (端口 $PORT)"
+      curl -s "http://127.0.0.1:$PORT/health" 2>/dev/null || echo "(健康检查无响应)"
+    else
+      echo "未运行"
+    fi
+    ;;
+  port)
+    if [ -n "$2" ]; then
+      uci set ctyun_dashboard.main.port="$2"
+      uci commit ctyun_dashboard
+      "$INIT" restart >/dev/null 2>&1
+      echo "端口已设为 $2"
+    else
+      echo "当前端口: $PORT"
+    fi
+    ;;
+  open)
+    IP=$(uci get network.lan.ipaddr 2>/dev/null || echo '192.168.1.1')
+    echo "http://${IP}:${PORT}"
+    ;;
+  logs)
+    tail -n 50 /var/lib/ctyun-dashboard/logs/*.jsonl 2>/dev/null || echo "暂无日志"
+    ;;
+  *) usage ;;
+esac

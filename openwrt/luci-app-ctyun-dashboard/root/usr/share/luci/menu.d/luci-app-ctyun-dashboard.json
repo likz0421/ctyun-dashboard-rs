@@ -1,0 +1,10 @@
+{
+  "admin/services/ctyun_dashboard": {
+    "title": "天翼云电脑",
+    "order": 60,
+    "action": {
+      "type": "view",
+      "path": "ctyun-dashboard/status"
+    }
+  }
+}

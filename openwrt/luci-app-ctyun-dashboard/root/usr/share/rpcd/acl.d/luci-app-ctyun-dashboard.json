@@ -1,0 +1,13 @@
+{
+  "luci-app-ctyun-dashboard": {
+    "description": "Grant access to ctyun-dashboard LuCI page",
+    "read": {
+      "ubus": { "uci": ["*"] },
+      "uci": ["ctyun_dashboard", "network"]
+    },
+    "write": {
+      "ubus": { "uci": ["*"] },
+      "uci": ["ctyun_dashboard"]
+    }
+  }
+}

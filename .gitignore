@@ -1,0 +1,31 @@
+# 编译产物
+/target/
+*.o
+*.a
+
+# 运行时数据（含加密凭据、会话、日志，绝不提交）
+/data/
+*.json.bak
+.master.key
+.master.key.bak
+
+# 本地配置覆盖
+.env
+*.local
+config.local.*
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# 部署包（由 CI/脚本生成，不入库）
+*.tar.gz
+ctyun-deploy/
+
+# OpenWrt 旧命名二进制（无 -musl 后缀，与 -musl 版 MD5 相同的冗余拷贝）
+openwrt/bin/ctyun-dashboard-*
+!openwrt/bin/ctyun-dashboard-*-musl

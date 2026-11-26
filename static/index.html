@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-accent="teal">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#faf8f3">
+<title>云电脑控制中心</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236a8aa3'/%3E%3Cpath d='M16 6l8 3.5v5.5c0 4.5-3 7.8-8 9-5-1.2-8-4.5-8-9V9.5z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M12.5 16l2.5 2.5 4.5-5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/style.css">
+<!-- 抢在首屏绘制前应用主题，消除深浅主题切换/刷新时的白屏闪烁 -->
+<script>
+(function(){
+  try{
+    var m=localStorage.getItem('ctyun_theme')||'light';
+    var a=localStorage.getItem('ctyun_accent')||'teal';
+    var t=m==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):m;
+    var r=document.documentElement;
+    r.setAttribute('data-theme',t); r.setAttribute('data-accent',a);
+    var meta=document.querySelector('meta[name="theme-color"]');
+    if(meta) meta.setAttribute('content', t==='dark'?'#0b0b0c':'#faf8f3');
+  }catch(e){}
+})();
+</script>
+</head>
+<body>
+
+<!-- SVG icon sprite: 全部为矢量图标，无 Emoji -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></symbol>
+  <symbol id="i-task" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h4"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.88 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1.11 1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.88.34H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.88V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-15.5-6.2L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 15.5 6.2L21 16"/><path d="M21 21v-5h-5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="M2 9a15 15 0 0 1 20 0"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l2 2M14 9l2 2"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></symbol>
+  <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.8-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H16a5 5 0 0 0 5-5c0-4-4-7-9-7z"/><path d="M7.5 11h.01M10 7.5h.01M14.5 7.5h.01"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 2l9 5-9 5-9-5z"/><path d="M3 12l9 5 9-5M3 17l9 5 9-5"/></symbol>
+  <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17L17 7M7 7h10v10"/></symbol>
+</svg>
+
+<!-- Boot loader -->
+<div id="boot" class="boot">
+  <div class="boot-inner">
+    <div class="boot-mark"><svg><use href="#i-shield"/></svg></div>
+    <div class="boot-title">云电脑控制中心</div>
+    <div class="boot-sub">正在建立安全连接</div>
+    <div class="boot-progress"><span></span></div>
+  </div>
+</div>
+
+<!-- Login -->
+<section id="login-view" class="login-view hidden">
+  <div class="login-shell">
+    <div class="login-aside">
+      <div class="login-aside-inner">
+        <span class="login-kicker">CtYun · Rust Edition</span>
+        <h1>一切，<br>正在发生。</h1>
+        <p>天翼云电脑的保活、任务与积分，尽在掌握。</p>
+        <div class="login-aside-foot">Unbound by the known. Chasing the unknown.</div>
+      </div>
+    </div>
+    <div class="login-main">
+      <form id="login-form" autocomplete="on">
+        <div class="login-brand"><div class="brand-mark"><svg><use href="#i-shield"/></svg></div><div><strong>云电脑控制中心</strong><span>CtYun Dashboard</span></div></div>
+        <h2 class="login-heading">欢迎回来</h2>
+        <p class="login-desc">登录后开始管理你的云电脑</p>
+        <label class="field"><span class="field-label">用户名</span>
+          <span class="input-wrap"><svg class="input-icon"><use href="#i-user"/></svg>
+            <input type="text" id="login-user" name="username" placeholder="请输入用户名" value="admin" required></span></label>
+        <label class="field"><span class="field-label">密码</span>
+          <span class="input-wrap"><svg class="input-icon"><use href="#i-key"/></svg>
+            <input type="password" id="login-pass" name="password" placeholder="请输入密码" required></span></label>
+        <label class="remember"><input type="checkbox" id="login-remember" checked><span class="checkbox-ui"></span>记住登录状态</label>
+        <button type="submit" class="btn btn-primary btn-block" id="login-submit">
+          <span class="btn-label">进入控制台</span><span class="btn-spinner"></span></button>
+        <div class="login-hint">默认管理员 admin / admin123，登录后请及时修改密码</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- 氛围背景：让顶栏/侧栏/dock 的毛玻璃有内容可模糊 -->
+<div class="ambient" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+
+<!-- Application -->
+<div id="app-view" class="app-view hidden">
+  <!-- 左栏：分组导航（Zenshi 骨架） -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="brand-mark small"><svg><use href="#i-shield"/></svg></div>
+      <div class="brand-text"><strong>云电脑控制中心</strong><span>CtYun Console</span></div>
+    </div>
+    <nav class="nav">
+      <span class="nav-group">控制台</span>
+      <button class="nav-item active" data-view="dashboard"><svg><use href="#i-grid"/></svg><span>总览面板</span></button>
+      <button class="nav-item" data-view="accounts"><svg><use href="#i-server"/></svg><span>云电脑</span></button>
+      <button class="nav-item" data-view="rewards"><svg><use href="#i-bolt"/></svg><span>积分商城</span></button>
+      <span class="nav-group">运维</span>
+      <button class="nav-item" data-view="tasks"><svg><use href="#i-task"/></svg><span>任务中心</span></button>
+      <button class="nav-item" data-view="logs"><svg><use href="#i-log"/></svg><span>实时日志</span></button>
+      <button class="nav-item" data-view="settings"><svg><use href="#i-settings"/></svg><span>系统设置</span></button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sys-status"><span class="status-dot"></span><span>系统运行正常</span></div>
+      <button class="user-chip" id="user-chip">
+        <span class="avatar"><svg><use href="#i-user"/></svg></span>
+        <span class="user-meta"><strong id="user-name">admin</strong><small id="user-role">管理员</small></span>
+        <svg class="chev"><use href="#i-chevron"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 主区 -->
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn mobile-menu" id="mobile-menu" title="菜单"><svg><use href="#i-menu"/></svg></button>
+      <div class="topbar-title"><h2 id="page-title">总览面板</h2><p id="page-subtitle">实时监控所有云电脑的运行状态</p></div>
+      <div class="topbar-actions">
+        <div class="live-clock"><span id="clock">--:--:--</span></div>
+        <div class="theme-switch" role="group" aria-label="主题模式">
+          <button class="theme-btn" data-theme-set="light" title="浅色主题"><svg><use href="#i-sun"/></svg></button>
+          <button class="theme-btn" data-theme-set="dark" title="深色主题"><svg><use href="#i-moon"/></svg></button>
+          <button class="theme-btn" data-theme-set="auto" title="跟随系统"><svg><use href="#i-auto"/></svg></button>
+        </div>
+        <button class="icon-btn" id="refresh-btn" title="刷新数据"><svg><use href="#i-refresh"/></svg></button>
+        <button class="icon-btn" id="logout-btn" title="退出登录"><svg><use href="#i-logout"/></svg></button>
+      </div>
+    </header>
+
+    <div class="content" id="content">
+      <!-- Dashboard -->
+      <section class="view active" id="view-dashboard">
+        <!-- 编辑部式 Hero：标题 + 状态环（毛玻璃，跟随主题） -->
+        <div class="editorial-hero">
+          <div class="eh-main">
+            <span class="eh-kicker">CtYun Control Center <i></i> 实时运行中</span>
+            <h1 class="eh-title">一切，<span>正在发生。</span></h1>
+            <p class="eh-sub">天翼云电脑的保活、任务与积分，尽在掌握。</p>
+            <!-- 版本/更新紧凑徽标：移入标题区内，管理员可见 -->
+            <div class="update-banner admin-only hidden" id="dash-version-card">
+              <span class="ub-icon"><svg><use href="#i-arrow-up-right"/></svg></span>
+              <div class="ub-text">
+                <div class="ub-title"><span class="ub-badge" id="dash-ver-badge">版本</span><strong id="dash-ver-current">v—</strong></div>
+                <p class="ub-status" id="dash-ver-status">正在检查更新…</p>
+              </div>
+              <div class="ub-actions">
+                <button class="btn btn-ghost btn-sm" id="dash-ver-check"><svg><use href="#i-refresh"/></svg>检查更新</button>
+                <button class="btn btn-primary btn-sm hidden" id="dash-ver-upgrade"><svg><use href="#i-arrow-up-right"/></svg>立即升级</button>
+              </div>
+            </div>
+          </div>
+          <div class="eh-side">
+            <div class="eh-orb" aria-hidden="true">
+              <svg viewBox="0 0 120 120"><circle class="orb-track" cx="60" cy="60" r="52"/><circle class="orb-ring" cx="60" cy="60" r="52"/></svg>
+              <div class="orb-core"><span class="status-dot"></span><small>在线</small></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 个指标：独立毛玻璃数据带（不塞进 Hero） -->
+        <div class="metrics-strip" id="kpi-grid">
+          <div class="metric kpi-accounts">
+            <span class="metric-label"><svg><use href="#i-user"/></svg>纳管账号</span>
+            <strong class="metric-value num" id="val-accounts">—</strong>
+            <small class="metric-foot">天翼云电脑</small>
+          </div>
+          <div class="metric kpi-online">
+            <span class="metric-label"><svg><use href="#i-wifi"/></svg>在线保活</span>
+            <strong class="metric-value num" id="val-online">—</strong>
+            <small class="metric-foot">实时会话</small>
+          </div>
+          <div class="metric kpi-sign">
+            <span class="metric-label"><svg><use href="#i-check"/></svg>今日签到</span>
+            <strong class="metric-value num" id="val-sign">—</strong>
+            <small class="metric-foot">已完成账号</small>
+          </div>
+          <div class="metric kpi-points clickable" id="kpi-points" title="点击查看积分明细">
+            <span class="metric-label"><svg><use href="#i-bolt"/></svg>今日已获积分</span>
+            <strong class="metric-value num" id="val-points">—</strong>
+            <small class="metric-foot link-tag">查看明细 <svg><use href="#i-chevron"/></svg></small>
+          </div>
+        </div>
+
+        <!-- 三栏主体：内容流 + 右侧状态栏 -->
+        <div class="dashboard-columns">
+          <div class="column-main">
+            <div class="panel" id="monitor-panel">
+              <div class="panel-head"><div><h3>运行状态监控</h3><p>保活与任务执行概览</p></div><span class="live-badge"><span></span>LIVE</span></div>
+              <div class="monitor-body">
+                <div class="monitor-row"><span class="label">保活在线率</span><div class="meter" id="meter-online"><i></i></div><span class="value" id="pct-online">—</span></div>
+                <div class="monitor-row"><span class="label">任务完成度</span><div class="meter teal" id="meter-task"><i></i></div><span class="value" id="pct-task">—</span></div>
+                <div class="monitor-row"><span class="label">凭据健康度</span><div class="meter amber" id="meter-health"><i></i></div><span class="value" id="pct-health">—</span></div>
+              </div>
+            </div>
+            <div class="panel" id="task-panel">
+              <div class="panel-head"><div><h3>今日任务进度</h3><p>官方任务中心完成情况</p></div><svg class="head-icon"><use href="#i-task"/></svg></div>
+              <div class="task-body" id="task-body">
+                <div class="task-item" data-task="sign"><span class="task-check"><svg><use href="#i-check"/></svg></span><div class="task-meta"><div class="task-meta-top"><span>每日签到打卡</span><small>待执行</small></div><div class="task-progress"><i></i></div></div><span class="task-points">+100</span></div>
+                <div class="task-item" data-task="ai"><span class="task-check"><svg><use href="#i-check"/></svg></span><div class="task-meta"><div class="task-meta-top"><span>AI 智能对话</span><small>待执行</small></div><div class="task-progress"><i></i></div></div><span class="task-points">+100</span></div>
+                <div class="task-item" data-task="hang"><span class="task-check"><svg><use href="#i-check"/></svg></span><div class="task-meta"><div class="task-meta-top"><span>挂机一小时</span><small>待执行</small></div><div class="task-progress"><i></i></div></div><span class="task-points">+100</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><div><h3>云电脑概览</h3><p>已纳管的天翼云电脑实例</p></div>
+                <button class="btn btn-ghost btn-sm" data-goto="accounts">查看全部<svg><use href="#i-chevron"/></svg></button></div>
+              <div class="overview-grid" id="overview-grid"><div class="empty-hint">暂无云电脑账号</div></div>
+            </div>
+          </div>
+          <aside class="column-rail">
+            <div class="rail-card rail-pulse">
+              <div class="rail-kicker"><span class="status-dot"></span> 实时脉搏</div>
+              <div class="pulse-chart"><svg viewBox="0 0 200 60" preserveAspectRatio="none"><path class="pulse-line" d="M0 40 L20 40 L26 22 L34 52 L42 40 L70 40 L78 30 L86 44 L100 40 L140 40 L148 18 L156 54 L164 40 L200 40"/></svg></div>
+              <p>系统心跳正常，数据每 4 秒同步一次。</p>
+            </div>
+            <div class="rail-card">
+              <div class="rail-kicker">运行快照</div>
+              <div class="rail-stats">
+                <div class="rail-stat"><strong id="stat-vms">—</strong><span>云电脑实例</span></div>
+                <div class="rail-stat"><strong id="stat-conn">—</strong><span>活跃连接</span></div>
+                <div class="rail-stat"><strong id="stat-err">—</strong><span>异常账号</span></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Accounts -->
+      <section class="view" id="view-accounts">
+        <div class="view-toolbar">
+          <div class="toolbar-info"><h3>天翼云电脑</h3><p id="account-count">共 0 个账号</p></div>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost btn-sm" id="sms-bind-btn"><svg><use href="#i-shield"/></svg>短信绑定</button>
+            <button class="btn btn-ghost btn-sm" id="qr-btn"><svg><use href="#i-qr"/></svg>扫码登录</button>
+            <button class="btn btn-primary btn-sm" id="add-account-btn"><svg><use href="#i-plus"/></svg>添加账号</button>
+          </div>
+        </div>
+        <div class="account-grid" id="account-grid"><div class="empty-hint">加载中…</div></div>
+      </section>
+
+      <!-- Tasks -->
+      <section class="view" id="view-tasks">
+        <div class="view-toolbar"><div class="toolbar-info"><h3>任务中心</h3><p>手动执行与调度配置</p></div></div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>手动执行任务</h3><p>选择账号后立即下发任务指令</p></div></div>
+          <div class="task-account-select" id="task-account-select"></div>
+          <div class="task-action-grid">
+            <button class="task-action" data-task="sign"><span class="task-icon blue"><svg><use href="#i-check"/></svg></span><span><strong>每日签到</strong><small>认领桌面完成登录打卡</small></span></button>
+            <button class="task-action" data-task="aiChat"><span class="task-icon purple"><svg><use href="#i-bolt"/></svg></span><span><strong>AI 智能对话</strong><small>完成官方 AI 对话任务</small></span></button>
+            <button class="task-action" data-task="hang"><span class="task-icon teal"><svg><use href="#i-clock"/></svg></span><span><strong>挂机一小时</strong><small>累积官方使用时长</small></span></button>
+            <button class="task-action" data-task="redeem"><span class="task-icon amber"><svg><use href="#i-bolt"/></svg></span><span><strong>积分兑换</strong><small>按配置自动兑换商品</small></span></button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>定时调度</h3><p>每日准点自动执行全部启用的任务</p></div><svg class="head-icon"><use href="#i-clock"/></svg></div>
+          <div class="cron-body" id="cron-body"></div>
+        </div>
+      </section>
+
+      <!-- Rewards / 积分商城 -->
+      <section class="view" id="view-rewards">
+        <div class="view-toolbar">
+          <div class="toolbar-info"><h3>积分商城</h3><p>查看可用积分并兑换升配包、数据盘等商品</p></div>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost btn-sm" id="redeem-config-btn"><svg><use href="#i-settings"/></svg>自动兑换设置</button>
+            <button class="btn btn-primary btn-sm" id="manual-redeem-btn"><svg><use href="#i-bolt"/></svg>手动兑换</button>
+          </div>
+        </div>
+        <div class="points-wallet" id="points-wallet">
+          <div class="wallet-main"><span class="wallet-label">账户积分余额</span><strong id="wallet-points">—</strong><span class="wallet-unit">积分</span></div>
+          <div class="wallet-side"><span id="wallet-account">—</span><button class="icon-btn" id="wallet-refresh" title="刷新积分"><svg><use href="#i-refresh"/></svg></button></div>
+        </div>
+        <div class="rewards-grid" id="rewards-grid"><div class="empty-hint">加载积分商城中…</div></div>
+      </section>
+
+      <!-- Logs -->
+      <section class="view" id="view-logs">
+        <div class="view-toolbar">
+          <div class="toolbar-info"><h3>实时日志</h3><p>通过服务器推送实时接收运行事件</p></div>
+          <div class="toolbar-actions">
+            <select id="log-level" class="select"><option value="">全部级别</option><option value="success">成功</option><option value="info">信息</option><option value="warning">警告</option><option value="error">错误</option></select>
+            <button class="btn btn-ghost btn-sm" id="clear-logs-btn"><svg><use href="#i-trash"/></svg>清空</button>
+          </div>
+        </div>
+        <div class="panel log-panel"><div class="log-list" id="log-list"><div class="empty-hint">加载中…</div></div></div>
+      </section>
+
+      <!-- Settings -->
+      <section class="view" id="view-settings">
+        <div class="panel auth-card admin-only hidden" id="auth-card">
+          <div class="panel-head"><div><h3>登录验证</h3><p>公网环境务必开启；仅纯内网、不对外暴露时可关闭以便免登录访问</p></div><svg class="head-icon"><use href="#i-shield"/></svg></div>
+          <div class="auth-card-body">
+            <div class="auth-mode"><span class="auth-mode-tag" id="auth-mode-tag">已开启</span><span class="auth-mode-desc" id="auth-mode-desc">访问控制台需要账号密码验证</span></div>
+            <div class="switch-row" style="padding:0">
+              <span><strong>开启登录验证</strong><small>关闭后任何人访问本页都免登录并以管理员身份操作，仅限可信内网使用</small></span>
+              <label><input type="checkbox" id="set-auth" checked><span class="switch-ui"></span></label>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>外观主题</h3><p>界面模式与强调色，设置保存在本机</p></div><svg class="head-icon"><use href="#i-palette"/></svg></div>
+          <div class="appearance">
+            <div class="appearance-group"><span class="appearance-label">显示模式</span>
+              <div class="seg" id="seg-theme">
+                <button data-theme-set="light"><svg><use href="#i-sun"/></svg>浅色</button>
+                <button data-theme-set="dark"><svg><use href="#i-moon"/></svg>深色</button>
+                <button data-theme-set="auto"><svg><use href="#i-auto"/></svg>跟随系统</button>
+              </div></div>
+            <div class="appearance-group"><span class="appearance-label">强调色</span>
+              <div class="swatches" id="swatches">
+                <button class="swatch teal" data-accent-set="teal" title="雾蓝"><i></i></button>
+                <button class="swatch indigo" data-accent-set="indigo" title="靛蓝"><i></i></button>
+                <button class="swatch amber" data-accent-set="amber" title="琥珀"><i></i></button>
+                <button class="swatch rose" data-accent-set="rose" title="玫瑰"><i></i></button>
+              </div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>系统设置</h3><p>仅管理员可修改全局配置</p></div><svg class="head-icon"><use href="#i-settings"/></svg></div>
+          <div class="settings-grid" id="settings-grid"></div>
+        </div>
+        <div class="panel" id="notify-panel">
+          <div class="panel-head"><div><h3>消息通知</h3><p>任务达成、积分变动、登录失效告警推送到你的专属通道</p></div><svg class="head-icon"><use href="#i-bell"/></svg></div>
+          <div class="settings-grid" id="notify-grid"></div>
+        </div>
+        <div class="panel" id="account-security-panel">
+          <div class="panel-head"><div><h3>账户安全</h3><p>修改登录用户名与密码</p></div><svg class="head-icon"><use href="#i-key"/></svg></div>
+          <div class="security-actions">
+            <button class="btn btn-ghost btn-sm" id="change-username-btn"><svg><use href="#i-user"/></svg>修改用户名</button>
+            <button class="btn btn-ghost btn-sm" id="change-password-btn"><svg><use href="#i-key"/></svg>修改密码</button>
+          </div>
+        </div>
+        <div class="panel admin-only" id="users-panel">
+          <div class="panel-head"><div><h3>用户管理</h3><p>管理用户访问权限与密码重置</p></div><svg class="head-icon"><use href="#i-user"/></svg></div>
+          <div class="user-table" id="user-table"></div>
+        </div>
+        <div class="panel about-card" id="about-card">
+          <div class="panel-head"><div><h3>关于</h3><p>云电脑控制中心</p></div><svg class="head-icon"><use href="#i-layers"/></svg></div>
+          <div class="about-body">
+            <p>基于 Rust · axum · tokio 构建，单文件部署，数据本地加密存储。</p>
+            <div class="about-meta"><span class="rail-tag">v1.0 · Rust Edition</span><span class="about-ver" id="about-version">v—</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- 底部 Dock：移动端底部导航（借鉴 Zenshi） -->
+  <nav class="dock" id="dock" aria-label="底部导航">
+    <button class="dock-item active" data-goto="dashboard"><svg><use href="#i-grid"/></svg><span>总览</span></button>
+    <button class="dock-item" data-goto="accounts"><svg><use href="#i-server"/></svg><span>云电脑</span></button>
+    <button class="dock-item" data-goto="rewards"><svg><use href="#i-bolt"/></svg><span>积分</span></button>
+    <button class="dock-item" data-goto="tasks"><svg><use href="#i-task"/></svg><span>任务</span></button>
+    <button class="dock-item" data-goto="logs"><svg><use href="#i-log"/></svg><span>日志</span></button>
+    <button class="dock-item" data-goto="settings"><svg><use href="#i-settings"/></svg><span>设置</span></button>
+  </nav>
+  <!-- 移动端侧栏遮罩 -->
+  <div class="sidebar-scrim" id="sidebar-scrim"></div>
+</div>
+
+<!-- 账号弹窗 -->
+<div class="modal-backdrop hidden" id="account-modal">
+  <div class="modal">
+    <div class="modal-head"><div><h3 id="account-modal-title">添加天翼云账号</h3><p>使用手机号与图形验证码登录</p></div>
+      <button class="icon-btn" data-close="account-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <div class="tabs"><button class="tab active" data-tab="password">密码登录</button><button class="tab" data-tab="qr">扫码登录</button></div>
+      <div class="tab-pane active" id="tab-password">
+        <label class="field"><span class="field-label">账号备注</span><input type="text" id="acc-name" placeholder="例如：我的办公云电脑"></label>
+        <label class="field"><span class="field-label">手机号</span><input type="text" id="acc-user" placeholder="天翼云账号手机号"></label>
+        <label class="field"><span class="field-label">密码</span><input type="password" id="acc-password" placeholder="天翼云账号密码"></label>
+        <label class="field"><span class="field-label">设备码</span><div class="inline-field"><input type="text" id="acc-device" placeholder="留空自动生成"><button class="btn btn-ghost btn-xs" id="gen-device-btn">生成</button></div></label>
+        <label class="field"><span class="field-label">图形验证码</span><div class="captcha-row"><input type="text" id="acc-captcha" placeholder="输入右侧验证码"><img id="captcha-img" alt="验证码" src="" hidden></div><button class="link-btn" id="get-captcha-btn">获取验证码</button></label>
+        <input type="hidden" id="acc-challenge-id"><input type="hidden" id="acc-challenge-code">
+      </div>
+      <div class="tab-pane" id="tab-qr">
+        <div class="qr-area"><div id="qr-image" class="qr-image"><svg><use href="#i-qr"/></svg></div><p id="qr-hint">点击生成二维码，使用天翼云电脑 App 扫码授权</p></div>
+        <button class="btn btn-ghost btn-block btn-sm" id="gen-qr-btn"><svg><use href="#i-qr"/></svg>生成登录二维码</button>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="account-modal">取消</button><button class="btn btn-primary" id="save-account-btn">保存账号</button></div>
+  </div>
+</div>
+
+<!-- 积分明细弹窗 -->
+<div class="modal-backdrop hidden" id="points-modal">
+  <div class="modal points-modal">
+    <div class="modal-head"><div><h3>积分明细</h3><p>今日任务达成与余额变动历史</p></div>
+      <button class="icon-btn" data-close="points-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="ptabs">
+      <button class="ptab active" data-ptab="today">今日任务</button>
+      <button class="ptab" data-ptab="history">余额历史</button>
+    </div>
+    <div class="ptab-pane active" id="ptab-today">
+      <div class="points-summary">今日合计 <strong id="points-modal-sum">0</strong> 积分</div>
+      <div class="modal-body points-detail-list" id="points-detail-list"></div>
+    </div>
+    <div class="ptab-pane" id="ptab-history">
+      <div class="hist-toolbar">
+        <select id="hist-account" class="hist-select" aria-label="选择账号"></select>
+      </div>
+      <div class="modal-body points-history-list" id="points-history-list"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="points-modal">关闭</button></div>
+  </div>
+</div>
+
+<!-- 手动积分兑换弹窗 -->
+<div class="modal-backdrop hidden" id="manual-redeem-modal">
+  <div class="modal modal-wide">
+    <div class="modal-head"><div><h3>手动积分兑换</h3><p>选择商品与目标云电脑，直接下单兑换</p></div>
+      <button class="icon-btn" data-close="manual-redeem-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <div class="wallet-inline">可用积分 <strong id="manual-user-points">—</strong><span id="manual-account-name"></span></div>
+      <label class="field"><span class="field-label">选择账号</span><select id="manual-account" class="select"></select></label>
+      <label class="field"><span class="field-label">兑换商品</span><select id="manual-product" class="select"></select></label>
+      <p class="field-hint" id="manual-product-desc"></p>
+      <label class="field" id="manual-desktop-field"><span class="field-label">绑定目标云电脑</span><select id="manual-desktop" class="select"></select></label>
+      <label class="field"><span class="field-label">兑换数量</span><input id="manual-times" type="number" value="1" min="1"></label>
+      <div class="cost-tip">预计消耗 <strong id="manual-cost">0</strong> 积分</div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="manual-redeem-modal">取消</button><button class="btn btn-primary" id="manual-order-submit"><svg><use href="#i-bolt"/></svg>立即兑换</button></div>
+  </div>
+</div>
+
+<!-- 自动兑换配置弹窗 -->
+<div class="modal-backdrop hidden" id="redeem-config-modal">
+  <div class="modal modal-wide">
+    <div class="modal-head"><div><h3>自动兑换设置</h3><p>按账号配置自动积分兑换策略</p></div>
+      <button class="icon-btn" data-close="redeem-config-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <label class="field"><span class="field-label">选择账号</span><select id="rc-account" class="select"></select></label>
+      <label class="switch-row"><span><strong>启用自动兑换</strong><small>按下方策略定时执行</small></span><input type="checkbox" id="rc-enabled"><span class="switch-ui"></span></label>
+      <label class="field"><span class="field-label">兑换商品</span><select id="rc-product" class="select"></select></label>
+      <label class="field"><span class="field-label">绑定目标云电脑</span><select id="rc-desktop" class="select"></select></label>
+      <div class="form-row">
+        <label class="field"><span class="field-label">时间策略</span><select id="rc-schedule" class="select">
+          <option value="monthly_days">每月指定日期</option><option value="daily">每日</option><option value="interval_days">每隔 N 天</option>
+        </select></label>
+        <label class="field" id="rc-monthly-group"><span class="field-label">每月日期（逗号分隔，-1=月末）</span><input id="rc-monthly" placeholder="1,15,-1"></label>
+        <label class="field hidden" id="rc-interval-group"><span class="field-label">间隔天数</span><input id="rc-interval" type="number" value="7" min="1"></label>
+      </div>
+      <label class="field"><span class="field-label">单次最多兑换次数（0=按余额尽量兑换）</span><input id="rc-max-times" type="number" value="1" min="0"></label>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="redeem-config-modal">取消</button><button class="btn btn-primary" id="rc-save"><svg><use href="#i-check"/></svg>保存设置</button></div>
+  </div>
+</div>
+
+<!-- 电源管理弹窗 -->
+<div class="modal-backdrop hidden" id="power-modal">
+  <div class="modal">
+    <div class="modal-head"><div><h3>云电脑电源管理</h3><p>选择账号与云电脑实例执行电源操作</p></div>
+      <button class="icon-btn" data-close="power-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <label class="field"><span class="field-label">选择账号</span><select id="power-account" class="select"></select></label>
+      <label class="field"><span class="field-label">选择云电脑</span><select id="power-desktop" class="select"></select></label>
+      <div class="power-actions">
+        <button class="power-btn" data-power="poweron"><svg><use href="#i-power"/></svg><span><strong>开机</strong><small>启动云电脑</small></span></button>
+        <button class="power-btn" data-power="awake"><svg><use href="#i-activity"/></svg><span><strong>唤醒</strong><small>唤醒休眠实例</small></span></button>
+        <button class="power-btn" data-power="reboot"><svg><use href="#i-refresh"/></svg><span><strong>重启</strong><small>重启云电脑</small></span></button>
+        <button class="power-btn danger" data-power="shutdown"><svg><use href="#i-power"/></svg><span><strong>关机</strong><small>关闭云电脑</small></span></button>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="power-modal">关闭</button></div>
+  </div>
+</div>
+
+<!-- 云电脑逐台设置弹窗 -->
+<div class="modal-backdrop hidden" id="vm-settings-modal">
+  <div class="modal modal-wide">
+    <div class="modal-head"><div><h3>云电脑设置</h3><p>逐台配置开关、保活间隔与自动开机</p></div>
+      <button class="icon-btn" data-close="vm-settings-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <label class="field"><span class="field-label">选择账号</span><select id="vm-account" class="select"></select></label>
+      <div class="vm-settings-list" id="vm-settings-list"><div class="empty-hint">该账号暂无云电脑实例</div></div>
+      <div class="sub-panel">
+        <h4>账号任务开关</h4>
+        <div class="feature-grid" id="feature-grid"></div>
+      </div>
+      <div class="sub-panel">
+        <h4>远程桌面分辨率</h4>
+        <div class="form-row" id="display-row">
+          <label class="field"><span class="field-label">宽度</span><input id="disp-width" type="number" value="2560"></label>
+          <label class="field"><span class="field-label">高度</span><input id="disp-height" type="number" value="1440"></label>
+          <label class="field"><span class="field-label">缩放 %</span><input id="disp-scale" type="number" value="150"></label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="vm-settings-modal">取消</button><button class="btn btn-primary" id="vm-save"><svg><use href="#i-check"/></svg>保存设置</button></div>
+  </div>
+</div>
+
+<!-- 短信绑定弹窗 -->
+<div class="modal-backdrop hidden" id="sms-modal">
+  <div class="modal">
+    <div class="modal-head"><div><h3>短信验证绑定</h3><p>完成设备绑定以解锁完整功能</p></div>
+      <button class="icon-btn" data-close="sms-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <label class="field"><span class="field-label">选择账号</span><select id="sms-account" class="select"></select></label>
+      <label class="field"><span class="field-label">图形验证码</span><div class="inline-field"><input type="text" id="sms-captcha" placeholder="输入右侧验证码"><img id="sms-captcha-img" class="captcha-img-sm" alt="验证码" src="" hidden></div><button class="link-btn" id="sms-get-captcha">获取图形验证码</button></label>
+      <label class="field"><span class="field-label">短信验证码</span><div class="inline-field"><input type="text" id="sms-code" placeholder="短信验证码"><button class="btn btn-ghost btn-xs" id="sms-send">发送短信</button></div></label>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="sms-modal">取消</button><button class="btn btn-primary" id="sms-bind"><svg><use href="#i-shield"/></svg>确认绑定</button></div>
+  </div>
+</div>
+
+<!-- 修改用户名弹窗 -->
+<div class="modal-backdrop hidden" id="username-modal">
+  <div class="modal modal-narrow">
+    <div class="modal-head"><div><h3>修改用户名</h3><p>修改后请使用新用户名登录</p></div>
+      <button class="icon-btn" data-close="username-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body"><label class="field"><span class="field-label">新用户名</span><input id="new-username" type="text" placeholder="输入新用户名"></label></div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="username-modal">取消</button><button class="btn btn-primary" id="username-submit">确认修改</button></div>
+  </div>
+</div>
+
+<!-- 修改密码弹窗 -->
+<div class="modal-backdrop hidden" id="password-modal">
+  <div class="modal modal-narrow">
+    <div class="modal-head"><div><h3>修改密码</h3><p>至少需要 6 位字符</p></div>
+      <button class="icon-btn" data-close="password-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body">
+      <label class="field"><span class="field-label">原密码</span><input id="old-password" type="password" placeholder="输入当前密码"></label>
+      <label class="field"><span class="field-label">新密码</span><input id="new-password" type="password" placeholder="至少 6 位"></label>
+      <label class="field"><span class="field-label">确认新密码</span><input id="confirm-password" type="password" placeholder="再次输入新密码"></label>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="password-modal">取消</button><button class="btn btn-primary" id="password-submit">确认修改</button></div>
+  </div>
+</div>
+
+<!-- 通用确认/输入弹窗（主题化，替代浏览器原生 confirm/prompt，深色主题不再突兀） -->
+<div class="modal-backdrop hidden" id="confirm-modal">
+  <div class="modal modal-narrow">
+    <div class="modal-head"><div><h3 id="confirm-title">确认操作</h3><p id="confirm-desc"></p></div>
+      <button class="icon-btn" data-close="confirm-modal"><svg><use href="#i-close"/></svg></button></div>
+    <div class="modal-body" id="confirm-input-wrap" style="display:none">
+      <label class="field"><span class="field-label" id="confirm-input-label">输入</span><input type="text" id="confirm-input"></label>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" id="confirm-cancel">取消</button><button class="btn btn-primary" id="confirm-ok">确定</button></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

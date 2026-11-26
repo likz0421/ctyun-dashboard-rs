@@ -1,0 +1,118 @@
+name: Build OpenWrt Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x86_64-musl
+            target: x86_64-unknown-linux-musl
+          - name: aarch64-musl
+            target: aarch64-unknown-linux-musl
+          - name: armv7-musl
+            target: armv7-unknown-linux-musleabihf
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install zig
+        run: pip3 install ziglang
+
+      - name: Setup zig CC + linker wrappers
+        run: |
+          ZIG=$(python3 -c 'import ziglang,os;print(os.path.join(os.path.dirname(ziglang.__file__),"zig"))')
+          sudo ln -sf "$ZIG" /usr/local/bin/zig
+          # CC wrapper: 转换 cc-rs 的 rust target 三元组为 zig 格式
+          # 用带引号的 heredoc，脚本内 $ 变量原样写入，无需转义
+          cat > /tmp/zig-cc <<'WRAP'
+          #!/bin/sh
+          out=""; target=""
+          for a in "$@"; do
+            case "$a" in
+              --target=*) t="${a#--target=}"; target=$(printf '%s' "$t" | sed \
+                -e 's/x86_64-unknown-linux-musl/x86_64-linux-musl/' \
+                -e 's/aarch64-unknown-linux-musl/aarch64-linux-musl/' \
+                -e 's/armv7-unknown-linux-musleabihf/arm-linux-musleabihf/' \
+                -e 's/arm-unknown-linux-musleabihf/arm-linux-musleabihf/') ;;
+              *) out="$out \"$a\"" ;;
+            esac
+          done
+          [ -n "$target" ] && eval "exec zig cc -target \"$target\" $out" || eval "exec zig cc $out"
+          WRAP
+          chmod +x /tmp/zig-cc
+          # 各架构 linker wrapper：过滤掉 zig cc 不支持的 ARM errata 参数
+          cat > /tmp/zig-ld-gen <<'GEN'
+          #!/bin/sh
+          target="$1"; shift
+          args=""
+          for a in "$@"; do
+            case "$a" in
+              *fix-cortex-a53-843419*) continue ;;
+              *) args="$args \"$a\"" ;;
+            esac
+          done
+          eval "exec zig cc -target \"$target\" $args"
+          GEN
+          chmod +x /tmp/zig-ld-gen
+          for spec in "x86_64-linux-musl:x86_64" "aarch64-linux-musl:aarch64" "arm-linux-musleabihf:armv7"; do
+            zt="${spec%%:*}"; nm="${spec##*:}"
+            printf '#!/bin/sh\nexec /tmp/zig-ld-gen %s "$@"\n' "$zt" > "/tmp/zig-ld-$nm"
+            chmod +x "/tmp/zig-ld-$nm"
+          done
+          echo "=== generated wrappers ==="
+          ls -l /tmp/zig-cc /tmp/zig-ld-* && cat /tmp/zig-ld-aarch64
+
+      - name: Build
+        env:
+          RUSTFLAGS: "-C link-self-contained=no"
+        run: |
+          case "${{ matrix.target }}" in
+            x86_64*)  export CC_x86_64_unknown_linux_musl=/tmp/zig-cc  CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=/tmp/zig-ld-x86_64 ;;
+            aarch64*) export CC_aarch64_unknown_linux_musl=/tmp/zig-cc CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/tmp/zig-ld-aarch64 ;;
+            armv7*)   export CC_armv7_unknown_linux_musleabihf=/tmp/zig-cc CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABIHF_LINKER=/tmp/zig-ld-armv7 ;;
+          esac
+          cargo build --release --target ${{ matrix.target }}
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/ctyun-dashboard-rs dist/ctyun-dashboard-${{ matrix.name }}
+          cd dist
+          md5sum ctyun-dashboard-${{ matrix.name }} > ctyun-dashboard-${{ matrix.name }}.md5
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: dist/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          tag_name: v1.0.0
+          overwrite_files: true
+          generate_release_notes: true
